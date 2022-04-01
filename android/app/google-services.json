@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "848673358979",
+    "project_id": "zakat-app-d39b1",
+    "storage_bucket": "zakat-app-d39b1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:848673358979:android:95433f4e523531680287b6",
+        "android_client_info": {
+          "package_name": "com.example.zakat_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "848673358979-1gdm56ba8r87vv1pkvoeslg8899j8dfd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.zakat_app",
+            "certificate_hash": "0b81a9788c64bd5dbdc3811bdaec72e3762a93ac"
+          }
+        },
+        {
+          "client_id": "848673358979-36a0jc79irjiits37efvr82q75mtpg7r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYNqIkiH0yO3zvK5SNbn9-D8mM7gpRF20"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "848673358979-36a0jc79irjiits37efvr82q75mtpg7r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
