@@ -132,9 +132,7 @@ class LoanState extends State<Loan> with SingleTickerProviderStateMixin {
       loanListLIS = <ModelLoan>[];
       updateListViewLIS();
     }
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: DefaultTabController(
+    return DefaultTabController(
         length: 4,
         child: Scaffold(
           appBar: AppBar(
@@ -282,7 +280,6 @@ class LoanState extends State<Loan> with SingleTickerProviderStateMixin {
                   backgroundColor: floatButtonColor,
                 )
               : SizedBox(),
-        ),
       ),
     );
   }

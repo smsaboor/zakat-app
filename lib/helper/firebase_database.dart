@@ -17,8 +17,10 @@ import 'package:zakat_app/model/model_loan.dart';
 class FirebaseHelper {
   //--------------------------- Common implementation for all Assets (Gold, Silver, Cash-in-hand, Cash-in-Bank)------------
   static int? firebaseUser;
-  static FirebaseHelper? _firebaseHelper; // Define Singleton DatabaseHelper object
+  static FirebaseHelper?
+      _firebaseHelper; // Define Singleton DatabaseHelper object
   FirebaseHelper._createInstance();
+
   factory FirebaseHelper() {
     if (_firebaseHelper == null) {
       _firebaseHelper = FirebaseHelper._createInstance();
@@ -41,38 +43,37 @@ class FirebaseHelper {
   CollectionReference zakatPaymentsCollection =
       FirebaseFirestore.instance.collection("zakatPayments");
 
-
   //---------------------------- All Functions for Cash Asset are implemented below----------------------------------
 
   // Get the 'Map List' [ List<Map> ] from the database and convert it to 'Gold List' [ List<ModelGold> ]
   Future<List<ModelCash>> getCashList(String userId, String table, String type,
-      String startDate, String endDate) async {
+      {String startDate = '1900-01-01', String endDate = '3000-01-01'}) async {
     List<ModelCash> cashList = <ModelCash>[]; //third create empty List of Gold
     var cashSnapShot = await cashCollection
         .where('type', isEqualTo: type)
         .where("userId", isEqualTo: userId)
-        .where("date", isGreaterThan: startDate, isLessThan: endDate)
+        // .where("date", isGreaterThanOrEqualTo: startDate, isLessThanOrEqualTo: endDate)
         .get();
-    int i=0;
+
     cashSnapShot.docs.forEach((map) {
-      cashList.add(ModelCash(
-        map['cashId'] ,
-        map['title'] ,
-        map['amount'] ,
-        map['date'],
-        map['note'] ,
-        map['type'] ,
-        map['userId'] ,
-      ));
+      ModelCash modelCash = new ModelCash(
+      map.id,
+      map['title'],
+      map['amount'],
+      map['date'],
+      map['note'],
+      map['type'],
+      map['userId'],
+      );
+      cashList.add(modelCash);
       print(map.data());
-      i++;
     });
     return cashList; // finally return our
   }
 
   Future<int> insertCash(ModelCash cash) async {
     var result = await cashCollection
-        .add(cash.toMap())
+        .add(cash.toJson())
         .then((value) => print("cash Inserted"))
         .catchError((error) => print("Failed to insert cash: $error"));
     return 1;
@@ -81,19 +82,20 @@ class FirebaseHelper {
   Future<int> updateCash(ModelCash cash) async {
     var result = await cashCollection
         .doc(cash.cashId.toString())
-        .update(cash.toMap())
+        .update(cash.toJson())
         .then((value) => print("cash Updated"))
         .catchError((error) => print("Failed to update cash: $error"));
     return 1;
   }
 
   Future<int> deleteCash(String cashId) async {
-    var result = await cashCollection
+    int result=0;
+    await cashCollection
         .doc(cashId)
         .delete()
-        .then((value) => print("cash deleted"))
+        .then((value) => print("cash deleted ${result=1}"))
         .catchError((error) => print("Failed to delet cash: $error"));
-    return 1;
+    return result;
   }
 
   Future<int> getCashCount(String userId) async {
@@ -114,15 +116,24 @@ class FirebaseHelper {
     var metalSnapShot = await metalCollection
         .where('type', isEqualTo: type)
         .where("userId", isEqualTo: userId)
-        .where("date", isGreaterThan: startDate, isLessThan: endDate)
+        // .where("date",
+        //     isGreaterThanOrEqualTo: startDate, isLessThanOrEqualTo: endDate)
         .get();
-    int i=0;
-    metalSnapShot.docs.forEach((doc) {
-      metalList.add(ModelMetal.fromMapObject(doc[i]));
-      print(doc.data());
-      i++;
+    metalSnapShot.docs.forEach((map) {
+      ModelMetal modelMetal = new ModelMetal(
+        map.id,
+        map['item'],
+        map['weight'],
+        map['carat'],
+        map['date'],
+        map['note'],
+        map['type'],
+        map['userId'],
+      );
+      metalList.add(modelMetal);
+      print(map.data());
     });
-    return metalList; // finally return our
+    return metalList; // finally re
   }
 
   Future<int> insertMetal(ModelMetal metal) async {
@@ -143,12 +154,13 @@ class FirebaseHelper {
   }
 
   Future<int> deleteMetal(String metalId) async {
-    var result = await metalCollection
+    int result=0;
+    await metalCollection
         .doc(metalId)
         .delete()
-        .then((value) => print("metal deleted"))
+        .then((value) => print("metal deleted ${result=1}"))
         .catchError((error) => print("Failed to delete metal: $error"));
-    return 1;
+    return result;
   }
 
   Future<int> getMetalCount(String userId) async {
@@ -164,77 +176,73 @@ class FirebaseHelper {
 
   Future<int> checkUserExist(String userId) async {
     debugPrint("checkUserExist  ------------}");
-    var userSnapShot = await userCollection.where("userId", isEqualTo: userId).get();
-    debugPrint("checkUserExist 2  length------------${userSnapShot.docs.length}");
+    var userSnapShot =
+        await userCollection.where("userId", isEqualTo: userId).get();
+    debugPrint(
+        "checkUserExist 2  length------------${userSnapShot.docs.length}");
     int i = 0;
-    if(userSnapShot.docs.length!=0){
+    if (userSnapShot.docs.length != 0) {
       userSnapShot.docs.forEach((doc) {
         print(doc.data());
         i++;
       });
       return 1;
-    }
-    else return 0;// finally return our
+    } else
+      return 0; // finally return our
   }
 
   Future<ModelUser?> getUser(String userId) async {
-    debugPrint("getUser  ------------}");
-    List<ModelUser> userList = <ModelUser>[];
-    ModelUser? userModel ;
+    ModelUser? userModel;
     var userSnapShot = await userCollection.where("userId", isEqualTo: userId).get();
     int i = 0;
-    debugPrint(" getUser FirebaseHelper.firebaseUser2200 ------------");
-    debugPrint(" getUser FirebaseHelper.firebaseUser2 ------------${userSnapShot.docs.length}");
-    debugPrint(" getUser FirebaseHelper.firebaseUser2200 ------------");
-    debugPrint(" getUser FirebaseHelper.firebaseUser2200 ------------${userSnapShot.docs[0].data()}");
-   try {
-     if (userSnapShot.docs.length != 0) {
-       debugPrint(" getUser FirebaseHelper.firebaseUser222 ------------${['userId']}");
-       userSnapShot.docs.forEach((map) {
-         debugPrint(" getUser FirebaseHelper.firebaseUser22 ------------${map['userId']}");
-         userModel = ModelUser(
-             map['userId'],
-           map['name'],
-           map['email'] ,
-           map['phone'],
-           map['password'] ,
-             map['registrationDate'] ,
-             map['isPaid'],
-           map['age'],
-           map['paymentDate'] ,
-           map['city'] ,
-           map['pin'],
-           map['familyId'] ,
-           map['photoUrl']
-         );
-         // userList.add(ModelUser.fromMapObject(doc[i]));
-         print(map.data());
-         i++;
-       });
-     }
-   }catch(e){
-     print("getUser error ${e}");
-   }
-    return userModel; /// finally return our
+    try {
+      if (userSnapShot.docs.length != 0) {
+        userSnapShot.docs.forEach((map) {
+          userModel = ModelUser(
+              map['userId'],
+              map['name'],
+              map['email'],
+              map['phone'],
+              map['password'],
+              map['registrationDate'],
+              map['isPaid'],
+              map['age'],
+              map['paymentDate'],
+              map['city'],
+              map['pin'],
+              map['familyId'],
+              map['photoUrl']);
+          // userList.add(ModelUser.fromMapObject(doc[i]));
+          print(map.data());
+          i++;
+        });
+      }
+    } catch (e) {
+      print("getUser error ${e}");
+    }
+    return userModel;
+
+    /// finally return our
   }
 
   Future<List<ModelUser>> getUserList(String userId) async {
     List<ModelUser> userList = <ModelUser>[];
-    var userSnapShot = await userCollection.where("userId", isEqualTo: userId).get();
+    var userSnapShot =
+        await userCollection.where("userId", isEqualTo: userId).get();
     int i = 0;
-    firebaseUser=userSnapShot.docs.length;
+    firebaseUser = userSnapShot.docs.length;
     debugPrint(" FirebaseHelper.firebaseUser2 ------------${firebaseUser}");
-    try{
-      if(userSnapShot.docs.length!=0){
+    try {
+      if (userSnapShot.docs.length != 0) {
         userSnapShot.docs.forEach((doc) {
           userList.add(ModelUser.fromMapObject(doc.get(i)));
           print(doc.data());
           i++;
         });
       }
-    }
-    catch(e){
-      print("-------------------------------------------get Usert error : ${e}");
+    } catch (e) {
+      print(
+          "-------------------------------------------get Usert error : ${e}");
     }
     return userList; // finally return our
   }
@@ -256,18 +264,20 @@ class FirebaseHelper {
     return 1;
   }
 
+
   Future<int> deleteUser(String userId) async {
-    var result = await userCollection
+    int result=0;
+    await userCollection
         .doc(userId)
         .delete()
-        .then((value) => print("user deleted"))
+        .then((value) => print("user deleted ${result=1}"))
         .catchError((error) => print("Failed to delete user: $error"));
-    return 1;
+    return result;
   }
 
   Future<int> getUserCount(String userId) async {
     var userSnapShot =
-    await userCollection.where("userId", isEqualTo: userId).get();
+        await userCollection.where("userId", isEqualTo: userId).get();
     int result = userSnapShot.docs.length;
     return result;
   }
@@ -278,34 +288,33 @@ class FirebaseHelper {
     List<ModelSetting> settingList = <ModelSetting>[];
     var settingSnapShot =
         await settingCollection.where("userId", isEqualTo: userId).get();
-   int i=0;
     settingSnapShot.docs.forEach((map) {
       settingList.add(ModelSetting(
-          map['settingId'] ,
-        map['country'] ,
-        map['currency'],
-        map['nisab'] ,
-        map['startDate'] ,
-        map['endDate'],
-        map['goldRate18C'],
-        map['goldRate20C'],
-        map['goldRate22C'],
-        map['goldRate24C'] ,
-        map['silverRate18C'] ,
-        map['silverRate20C'],
-        map['silverRate22C'] ,
-        map['silverRate24C'] ,
-        map['userId']
-      ));
+          map.id,
+          map['country'],
+          map['currency'],
+          map['nisab'],
+          map['startDate'],
+          map['endDate'],
+          map['goldRate18C'],
+          map['goldRate20C'],
+          map['goldRate22C'],
+          map['goldRate24C'],
+          map['silverRate18C'],
+          map['silverRate20C'],
+          map['silverRate22C'],
+          map['silverRate24C'],
+          map['userId']));
       print(map.data());
-      i++;
     });
-    return settingList.isNotEmpty? settingList.elementAt(0):null; // finally return our
+    return settingList.isNotEmpty
+        ? settingList.elementAt(0)
+        : null; // finally return our
   }
 
-  Future<int> insertSetting(ModelSetting setting) async {
+  Future<int> insertSetting(ModelSetting? setting) async {
     var result = await settingCollection
-        .add(setting.toMap())
+        .add(setting!.toMap())
         .then((value) => print("setting Inserted"))
         .catchError((error) => print("Failed to insert setting: $error"));
     return 1;
@@ -321,12 +330,13 @@ class FirebaseHelper {
   }
 
   Future<int> deleteSetting(String settingId) async {
-    var result = await settingCollection
+    int result=0;
+    await settingCollection
         .doc(settingId)
         .delete()
-        .then((value) => print("setting deleted"))
+        .then((value) => print("setting deleted ${result=1}"))
         .catchError((error) => print("Failed to delete setting: $error"));
-    return 1;
+    return result;
   }
 
   Future<int?> getSettingCount(String settingId) async {
@@ -342,15 +352,22 @@ class FirebaseHelper {
     List<ModelRiba> ribaList = <ModelRiba>[];
     var ribaSnapShot = await ribaCollection
         .where("userId", isEqualTo: userId)
-        .where("date", isGreaterThan: startDate, isLessThan: endDate)
+        // .where("date", isGreaterThan: startDate, isLessThan: endDate)
         .get();
-    int i=0;
-    ribaSnapShot.docs.forEach((doc) {
-      ribaList.add(ModelRiba.fromMapObject(doc[i]));
-      print(doc.data());
-      i++;
+    ribaSnapShot.docs.forEach((map) {
+      ModelRiba modelRiba = new ModelRiba(
+          map.id,
+        //then insert _name into map object with the key of name and so on
+        map['bankName'] ,
+        map['amount'] ,
+        map['date'] ,
+        map['note'] ,
+        map['userId']
+      );
+      ribaList.add(modelRiba);
+      print(map.data());
     });
-    return ribaList; // finally return our
+    return ribaList; // finally re
   }
 
   // Get the 'Map List' [ List<Map> ] from the database and convert it to 'Gold List' [ List<ModelGold> ]
@@ -361,7 +378,7 @@ class FirebaseHelper {
         .where("amount", isGreaterThan: 0)
         .get();
     ribaSnapShot.docs.forEach((map) {
-      ModelRiba modelRiba = new ModelRiba(map['ribaId'], map['bankName'],
+      ModelRiba modelRiba = new ModelRiba(map.id, map['bankName'],
           map['amount'], map['date'], map['note'], map['userId']);
       ribaList.add(modelRiba);
       print(map.data());
@@ -374,10 +391,11 @@ class FirebaseHelper {
     List<ModelRiba> ribaList = <ModelRiba>[];
     var ribaSnapShot = await ribaCollection
         .where("userId", isEqualTo: userId)
-        .where("amount", isLessThan: 0)
+        .where("amount", isGreaterThan: 0)
         .get();
     ribaSnapShot.docs.forEach((map) {
-      ModelRiba modelRiba = new ModelRiba(map['ribaId'], map['bankName'],
+      ModelRiba modelRiba = new ModelRiba(
+      map.id, map['bankName'],
           map['amount'], map['date'], map['note'], map['userId']);
       ribaList.add(modelRiba);
       print(map.data());
@@ -403,12 +421,13 @@ class FirebaseHelper {
   }
 
   Future<int> deleteRiba(String ribaId) async {
-    var result = await ribaCollection
+    int result=0;
+    await ribaCollection
         .doc(ribaId)
         .delete()
-        .then((value) => print("riba deleted"))
+        .then((value) => print("riba deleted ${result=1}"))
         .catchError((error) => print("Failed to delete riba: $error"));
-    return 1;
+    return result;
   }
 
   Future<int?> getRibaCount(String userId) async {
@@ -426,7 +445,7 @@ class FirebaseHelper {
         await loanCollection.where("userId", isEqualTo: userId).get();
     loanSnapShot.docs.forEach((map) {
       ModelLoan modelLoan = new ModelLoan(
-          map['loanid'],
+          map.id,
           map['description'],
           map['amount'],
           map['date'],
@@ -479,13 +498,27 @@ class FirebaseHelper {
     return 1;
   }
 
+
+  // Future<int> checkLoanExist(String docId) async {
+  //   var userDocRef = FirebaseFirestore.instance.collection('loan').doc(docId);
+  //   var doc = await userDocRef.get();
+  //   if (!doc.exists) {
+  //     debugPrint('No such document exista!');
+  //     return 0;
+  //   } else {
+  //     debugPrint('Document data: ${doc.data()}');
+  //     return 1;
+  //   }
+  // }
   Future<int> deleteLoan(String loanId) async {
-    var result = await loanCollection
+    int result=0;
+    await loanCollection
         .doc(loanId)
         .delete()
-        .then((value) => print("loan deleted"))
+        .then((value) => print("loan deleted ${result=1}"))
         .catchError((error) => print("Failed to delete loan: $error"));
-    return 1;
+    return result;
+
   }
 
   Future<int?> getLoanCount(String userId) async {
@@ -503,15 +536,22 @@ class FirebaseHelper {
     var cashSnapShot = await cashCollection
         .where('type', isEqualTo: type)
         .where("userId", isEqualTo: userId)
-        .where("date", isGreaterThan: startDate, isLessThan: endDate)
+        .where("date", isGreaterThanOrEqualTo: startDate, isLessThanOrEqualTo: endDate)
         .get();
-    int i=0;
-    cashSnapShot.docs.forEach((doc) {
-      cashListZakat.add(ModelCash.fromMapObject(doc[i]));
-      print(doc.data());
-      i++;
+    cashSnapShot.docs.forEach((map) {
+      ModelCash modelCash = new ModelCash(
+        map.id,
+        map['title'],
+        map['amount'],
+        map['date'],
+        map['note'],
+        map['type'],
+        map['userId'],
+      );
+      cashListZakat.add(modelCash);
+      print(map.data());
     });
-    return cashListZakat; // finally return o
+    return cashListZakat; // finally return our
   }
 
   Future<List<ModelMetal>> getMetalListZakat(String table, String type,
@@ -520,47 +560,61 @@ class FirebaseHelper {
     var metalSnapShot = await metalCollection
         .where('type', isEqualTo: type)
         .where("userId", isEqualTo: userId)
-        .where("date", isGreaterThan: startDate, isLessThan: endDate)
+        .where("date", isGreaterThanOrEqualTo: startDate, isLessThanOrEqualTo: endDate)
         .get();
-    int i=0;
-    metalSnapShot.docs.forEach((doc) {
-      metalListZakat.add(ModelMetal.fromMapObject(doc[i]));
-      print(doc.data());
-      i++;
+    metalSnapShot.docs.forEach((map) {
+      ModelMetal modelMetal = new ModelMetal(
+        map.id,
+        map['item'],
+        map['weight'],
+        map['carat'],
+        map['date'],
+        map['note'],
+        map['type'],
+        map['userId'],
+      );
+      metalListZakat.add(modelMetal);
+      print(map.data());
     });
-    return metalListZakat; // finally retu
+    return metalListZakat; // finally re
   }
-
   // Get the 'Map List' [ List<Map> ] from the database and convert it to 'Gold List' [ List<ModelGold> ]
   Future<List<ModelRiba>> getRibaListZakat(String userId) async {
     List<ModelRiba> ribaListZakat = <ModelRiba>[];
     var ribaSnapShot =
         await ribaCollection.where("userId", isEqualTo: userId).get();
-    int i=0;
-    ribaSnapShot.docs.forEach((doc) {
-      ribaListZakat.add(ModelRiba.fromMapObject(doc[i]));
-      print(doc.data());
-      i++;
+    ribaSnapShot.docs.forEach((map) {
+      ModelRiba modelRiba = new ModelRiba(map.id, map['bankName'],
+          map['amount'], map['date'], map['note'], map['userId']);
+      ribaListZakat.add(modelRiba);
+      print(map.data());
     });
     return ribaListZakat; // finally return our
   }
-
   Future<List<ModelLoan>> getLoanListZakat(String table, String type,
       String startDate, String endDate, String userId) async {
     List<ModelLoan> loanListZakat = <ModelLoan>[];
-    var metalSnapShot = await loanCollection
+    var loanSnapShot = await loanCollection
         .where('type', isEqualTo: type)
         .where("userId", isEqualTo: userId)
-        .where("date", isGreaterThan: startDate, isLessThan: endDate)
+        .where("date", isGreaterThanOrEqualTo: startDate, isLessThanOrEqualTo: endDate)
         .get();
-    int i=0;
-    metalSnapShot.docs.forEach((doc) {
-      loanListZakat.add(ModelLoan.fromMapObject(doc[i]));
-      print(doc.data());
-      i++;
+    loanSnapShot.docs.forEach((res) {
+      ModelLoan modelLoan = new ModelLoan(
+        res.id,
+        res['description'],
+        res['amount'],
+        res['date'],
+        res['type'],
+        res['addnotes'],
+        res['userId'],
+      );
+      loanListZakat.add(modelLoan);
+      print(res.data());
     });
     return loanListZakat; // finally re
   }
+
 
   //---------------------------- All Functions for Zakat Paid are implemented below-----------------------------------
   // Get the 'Map List' [ List<Map> ] from the database and convert it to 'Gold List' [ List<ModelGold> ]
@@ -568,15 +622,22 @@ class FirebaseHelper {
     List<ModelZakatPaid> zakatPaidList = <ModelZakatPaid>[];
     var zakatPaymentsSnapShot =
         await zakatPaymentsCollection.where("userId", isEqualTo: userId).get();
-    int i=0;
-    zakatPaymentsSnapShot.docs.forEach((doc) {
-      zakatPaidList.add(ModelZakatPaid.fromMapObject(doc[i]));
-      print(doc.data());
-      i++;
+    zakatPaymentsSnapShot.docs.forEach((map) {
+      ModelZakatPaid modelZakatPaid = new ModelZakatPaid(
+        map.id,
+          map['title'],
+          map['startDate'],
+          map['endDate'],
+          map['amount'],
+          map['paymentDate'] ,
+          map['note'] ,
+          map['userId']
+      );
+      zakatPaidList.add(modelZakatPaid);
+      print(map.data());
     });
     return zakatPaidList; // finally re
   }
-
   Future<int> updateZakatPaid(ModelZakatPaid zakat) async {
     var result = await zakatPaymentsCollection
         .doc(zakat.zakatPaymentId.toString())
@@ -595,12 +656,13 @@ class FirebaseHelper {
   }
 
   Future<int> deleteZakatPaid(String zakatPaymentId) async {
-    var result = await zakatPaymentsCollection
+    int result=0;
+    await zakatPaymentsCollection
         .doc(zakatPaymentId)
         .delete()
-        .then((value) => print("zakatPayment deleted"))
+        .then((value) => print("zakatPayment deleted ${result=1}"))
         .catchError((error) => print("Failed to delete zakatPayment: $error"));
-    return 1;
+    return result;
   }
 
   Future<int> getZakatPaidCount(String userId) async {

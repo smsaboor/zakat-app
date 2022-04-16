@@ -59,7 +59,7 @@ class AddGoldState extends State<AddGold> {
 
   @override
   void initState() {
-    if (metal.metalId != null) {
+    if (metal.metalId.isNotEmpty) {
       _controller1.text = metal.item;
       _controller2.text = metal.weight.toString();
       _controller3.text = metal.date;
@@ -73,8 +73,10 @@ class AddGoldState extends State<AddGold> {
       } else if (metal.carat == 24) {
         _currentSelectedValue = '24K';
       }
-
       _canShowButton = true;
+    }
+    else{
+      _controller2.text = '0.0';
     }
     // TODO: implement initState
     super.initState();
@@ -163,20 +165,28 @@ class AddGoldState extends State<AddGold> {
                         child: new Flexible(
                           child: TextFormField(
                             controller: _controller2,
+                            keyboardType:
+                            TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: <TextInputFormatter>[
+                              FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                            ],
                             validator: (value) {
                               if (value!.isEmpty) {
                                 return 'Enter weight';
                               }
                               return null;
                             },
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
+                                onTap: (){
+                              if(metal.metalId.isNotEmpty)
+                                  _controller2.text=metal.weight.toString();
+                              else  _controller2.text='';
+                                },
                             decoration: new InputDecoration(
                                 border: new OutlineInputBorder(
                                     borderSide:
                                         new BorderSide(color: Colors.teal)),
                                 labelText: 'Weight',
-                                prefixText: ' ',
+                                prefixText: '',
                                 suffixText: "gm",
                                 hintText: 'Weight in Grams',
                                 hintStyle: const TextStyle(fontSize: 14.0),
@@ -343,7 +353,6 @@ class AddGoldState extends State<AddGold> {
 
   void _save() async {
     if (formKey.currentState!.validate()) {
-      this.metal.metalId=id.v1();
       this.metal.item = _controller1.text.toString();
       if (_controller2.text == null) {
         this.metal.weight = 0.0;
@@ -362,15 +371,16 @@ class AddGoldState extends State<AddGold> {
       this.metal.type = 'gold';
       this.metal.note = _controller4.text.toString();
       this.metal.userId = this.finaluserid;
-
-      if (metal.metalId != null) {
+      int result;
+      if (metal.metalId.isEmpty) {
+        debugPrint(".....................insert");
+        result = await firebaseHelper.insertMetal(metal);
         // Case 1: Update operation
-        await firebaseHelper.updateMetal(metal);
       } else {
+        debugPrint(".....................updateCash");
         // Case 2: Insert Operation
-        await firebaseHelper.insertMetal(metal);
+        result = await firebaseHelper.updateMetal(metal);
       }
-
       moveToLastScreen();
     }
   } //Save function end

@@ -44,7 +44,6 @@ class AddLendState extends State<AddLend> {
 
   ModelSetting? setting;
   List<ModelSetting> settingList=[];
-  DataHelper helper = DataHelper();
   bool _canShowButton = false;
   DateTime? date;
   int flag = 0;
@@ -299,7 +298,6 @@ class AddLendState extends State<AddLend> {
   void _save() async {
     if (formKey.currentState!.validate()) {
       this.loan.description = _controller1.text.toString();
-      this.loan.loanid=id.v1();
       if (_controller2.text == null) {
         this.loan.amount = 0.0;
       } else {
@@ -311,12 +309,12 @@ class AddLendState extends State<AddLend> {
       this.loan.type = 'lendsecure';
       this.loan.userId = this.finaluserid;
       int result;
-      if (loan.loanid != null) {
+      if (loan.loanid.isEmpty) {
         // Case 1: Update operation
-        result = await helper.updateLoan(loan);
+        result = await firebaseHelper.insertLoan(loan);
       } else {
         // Case 2: Insert Operation
-        result = await helper.insertLoan(loan);
+        result = await firebaseHelper.updateLoan(loan);
       }
 
 //    if (result != 0) { // Success

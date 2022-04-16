@@ -166,9 +166,7 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
       metalListS = <ModelMetal>[];
       updateListViewS();
     }
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: DefaultTabController(
+    return DefaultTabController(
         length: 5,
         child: Scaffold(
           appBar: AppBar(
@@ -322,7 +320,6 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
                 )
               : SizedBox(),
         ),
-      ),
     );
   }
 
@@ -390,7 +387,7 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
                 ),
               ]),
               onLongPress: () async {
-                final Future<ConfirmAction?> action =
+                final ConfirmAction? action =
                     await _asyncConfirmDialogCIH(context, position);
                 print("Confirm Action $action");
                 if (flagCIH == 1) {
@@ -483,6 +480,8 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
                 navigateToCIB(this.cashListCIB[position], 'Edit Bank Cash',
                     'Delete', this.finaluserid, position);
               },
+
+
             ),
           );
         });
@@ -563,6 +562,7 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
                   _deleteG(context, metalListG[position]);
                 }
               },
+
               onTap: () {
                 debugPrint("ListTile Tapped");
                 navigateToDetailG(this.metalListG[position], 'Edit Gold Item',
@@ -658,7 +658,7 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
   }
 
   void navigateToDetailG(ModelMetal metal, String title, String button,
-      int finaluserid, int position) async {
+      String finaluserid, int position) async {
     bool result =
         await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return AddGold(
@@ -671,7 +671,7 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
   }
 
   void navigateToDetailS(ModelMetal metal, String title, String button,
-      int finaluserid, int position) async {
+      String finaluserid, int position) async {
     bool result =
         await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return AddSilver(metal, title, button, finaluserid, position);
@@ -683,7 +683,7 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
   }
 
   void navigateToCIB(ModelCash cash, String title, String button,
-      int finaluserid, int position) async {
+      String finaluserid, int position) async {
     bool result =
         await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return AddCashInBank(
@@ -696,7 +696,7 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
   }
 
   void navigateToCIH(ModelCash cash, String title, String button,
-      int finaluserid, int position) async {
+      String finaluserid, int position) async {
     bool result =
         await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return AddCashInHand(
@@ -738,9 +738,7 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
       Future<List<ModelCash>> cashListFuture = firebaseHelper.getCashList(
           this.finaluserid,
           'cash',
-          'cashinbank',
-          settings.startDate,
-          settings.endDate);
+          'cashinbank');
       cashListFuture.then((cashList) {
         if (this.mounted) {
           setState(() {
@@ -765,10 +763,10 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
       Future<List<ModelCash>> cashListFuture = firebaseHelper.getCashList(
           finaluserid,
           'cash',
-          'cashinhand',
-          settings.startDate,
-          settings.endDate);
+          'cashinhand');
+      debugPrint('Hello cash list-----------------}');
       cashListFuture.then((cashList) {
+        debugPrint('Hello cash list-----------------${cashList.length}');
         if (this.mounted) {
           setState(() {
             this.cashListCIH = cashList;
@@ -825,7 +823,7 @@ class AssetsState extends State<Assets> with SingleTickerProviderStateMixin {
     Scaffold.of(context).showSnackBar(snackBar);
   }
 
-  Future<Future<ConfirmAction?>> _asyncConfirmDialogCIH(
+  Future<ConfirmAction?> _asyncConfirmDialogCIH(
       BuildContext context, int position) async {
     return showDialog<ConfirmAction>(
       context: context,

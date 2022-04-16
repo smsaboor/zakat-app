@@ -114,20 +114,20 @@ class DataHelper {
         <ModelCash>[]; //third create empty List of Gold
     // For loop to copy all the 'Map list object' into our UsersList'
     for (int i = 0; i < count; i++) {
-      metalList.add(ModelCash.fromMapObject(metalMapList[i]));
+      metalList.add(ModelCash.fromJson(metalMapList[i]));
     }
     return metalList; // finally return our Users list
   }
 
   Future<int> insertCash(ModelCash cash) async {
     Database db = await this.database;
-    var result = await db.insert('cash', cash.toMap());
+    var result = await db.insert('cash', cash.toJson());
     return result;
   }
 
   Future<int> updateCash(ModelCash cash) async {
     var db = await this.database;
-    var result = await db.update('cash', cash.toMap(),
+    var result = await db.update('cash', cash.toJson(),
         where: 'cashId = ?', whereArgs: [cash.cashId]);
     return result;
   }
@@ -561,7 +561,7 @@ class DataHelper {
         <ModelCash>[]; //third create empty List of Gold
     // For loop to copy all the 'Map list object' into our UsersList'
     for (int i = 0; i < count; i++) {
-      metalList.add(ModelCash.fromMapObject(metalMapList[i]));
+      metalList.add(ModelCash.fromJson(metalMapList[i]));
     }
     return metalList; // finally return our Users list
   }

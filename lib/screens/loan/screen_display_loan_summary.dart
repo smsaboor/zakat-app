@@ -55,7 +55,7 @@ class DisplayLoanSummaryState extends State<DisplayLoanSummary> {
 
   @override
   Widget build(BuildContext context) {
-    if (loanList == null) {
+    if (loanList.isEmpty) {
       loanList = <ModelLoan>[];
       updateListViewBorrow('loan', 'borrow', userId);
       updateListViewLendSecure('loan', 'lendsecure', userId);

@@ -711,9 +711,8 @@ class AddSettingState extends State<AddSetting> {
     if (formKey.currentState!.validate()) {
       //updateListView();
       if (this.settings == null) {
-        this.settings = new ModelSetting('','','',0,'','',0,0,0,0,0,0,0,0,'');
+        this.settings = settings;
       }
-      this.settings.settingId=id.v1();
       this.settings.country = _selectedDialogCountry.isoCode!;
       this.settings.currency = _selectedDialogCountry.currencyCode!;
 

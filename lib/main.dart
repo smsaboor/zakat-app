@@ -9,11 +9,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zakat_app/cubits/auth_cubit/auth_state.dart';
 import 'package:zakat_app/cubits/auth_cubit/auth_cubit.dart';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await EasyLocalization.ensureInitialized();
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    if (kReleaseMode)
+      exit(1);
+  };
   runApp(
     EasyLocalization(
         supportedLocales: [Locale('en', 'US'), Locale('ar', 'SA')],

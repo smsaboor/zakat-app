@@ -54,7 +54,7 @@ class DisplayRibaSummaryState extends State<DisplayRibaSummary> {
 
   @override
   Widget build(BuildContext context) {
-    if (ribaList == null) {
+    if (ribaList.isEmpty) {
       ribaList = <ModelRiba>[];
       updateListRibaReceived(userId);
       updateListRibaPaid(userId);

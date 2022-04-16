@@ -49,7 +49,6 @@ class AddCashInHandState extends State<AddCashInHand> {
   int flag = 0;
   int count = 0;
   FirebaseHelper firebaseHelper = FirebaseHelper();
-  var id = Uuid();
 
   List<ModelCash> cashList = <ModelCash>[];
   final TextEditingController _controller1 = new TextEditingController();
@@ -62,12 +61,15 @@ class AddCashInHandState extends State<AddCashInHand> {
 
   @override
   void initState() {
-    if (cash.cashId != null) {
+    if (cash.cashId.isNotEmpty) {
       _controller1.text = cash.title.toString();
       _controller2.text = cash.amount.toString();
       _controller3.text = cash.date.toString();
       _controller4.text = cash.note.toString();
       _canShowButton = true;
+    }
+    else{
+      _controller2.text = '';
     }
     // TODO: implement initState
     super.initState();
@@ -165,8 +167,12 @@ class AddCashInHandState extends State<AddCashInHand> {
                         return null;
                       },
                       keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                      ],
                       textInputAction: TextInputAction.next,
                       decoration: new InputDecoration(
+                          // suffixIcon: Icon(IconData(61668, fontFamily: 'MaterialIcons')),
                           border: new OutlineInputBorder(
                               borderSide: new BorderSide(color: Colors.teal)),
                           labelText: 'Amount',
@@ -258,10 +264,12 @@ class AddCashInHandState extends State<AddCashInHand> {
                               style: new TextStyle(
                                   color: Colors.white, fontSize: 20.0),
                             ),
+
                             onPressed: () async {
                               updateListViewCIH();
                               final Future<ConfirmAction?> action =
                                   await _asyncConfirmDialog(context, position);
+                              print("Confirm Action $action");
                               if (flag == 1) {
                                 _delete(context, cashList[position]);
                                 moveToLastScreen();
@@ -281,7 +289,6 @@ class AddCashInHandState extends State<AddCashInHand> {
 
   void _save() async {
     if (formKey.currentState!.validate()) {
-      this.cash.cashId=id.v1();
       this.cash.title = _controller1.text.toString();
       if (_controller2.text == null) {
         this.cash.amount = 0.0;
@@ -293,7 +300,16 @@ class AddCashInHandState extends State<AddCashInHand> {
       this.cash.type = 'cashinhand';
       this.cash.note = _controller4.text.toString();
       this.cash.userId = this.finaluserid;
-      await firebaseHelper.insertCash(cash);
+      int result;
+      if (cash.cashId.isEmpty) {
+        debugPrint(".....................insert");
+        result = await firebaseHelper.insertCash(cash);
+        // Case 1: Update operation
+      } else {
+        debugPrint(".....................updateCash");
+        // Case 2: Insert Operation
+        result = await firebaseHelper.updateCash(cash);
+      }
       moveToLastScreen();
     }
   }
@@ -344,9 +360,7 @@ class AddCashInHandState extends State<AddCashInHand> {
       Future<List<ModelCash>> cashListFuture = firebaseHelper.getCashList(
           finaluserid,
           'cash',
-          'cashinhand',
-          settings.startDate,
-          settings.endDate);
+          'cashinhand');
       cashListFuture.then((cashList) {
         setState(() {
           this.cashList = cashList;

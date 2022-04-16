@@ -44,7 +44,6 @@ class AddLendInsecureState extends State<AddLendInsecure> {
 
   ModelSetting? setting;
   List<ModelSetting> settingList=[];
-  DataHelper helper = DataHelper();
   bool _canShowButton = false;
   DateTime? date;
   int flag = 0;
@@ -290,18 +289,17 @@ class AddLendInsecureState extends State<AddLendInsecure> {
         String amt = _controller2.text.toString();
         this.loan.amount = double.parse('$amt');
       }
-      this.loan.loanid=id.v1();
       this.loan.date = _controller3.text.toString();
       this.loan.addnotes = _controller4.text.toString();
       this.loan.type = 'lendinsecure';
       this.loan.userId = this.finaluserid;
       int result;
-      if (loan.loanid != null) {
+      if (loan.loanid.isEmpty) {
         // Case 1: Update operation
-        result = await helper.updateLoan(loan);
+        result = await firebaseHelper.insertLoan(loan);
       } else {
         // Case 2: Insert Operation
-        result = await helper.insertLoan(loan);
+        result = await firebaseHelper.updateLoan(loan);
       }
       moveToLastScreen();
     }

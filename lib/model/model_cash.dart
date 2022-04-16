@@ -56,7 +56,7 @@ class ModelCash {
     _cashId = value;
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     //below line is instantiation for empty map object
     var map = Map<String, dynamic>();
     if (cashId != null) {
@@ -72,7 +72,7 @@ class ModelCash {
 
     return map;
   }
-  ModelCash.fromMapObject(Map<String, dynamic> map) {
+  ModelCash.fromJson(Map<dynamic, dynamic> map) {
     //below line for extract a id
     //keys in green color or used within map[] should be same which we used above mapping
     this._cashId = map['cashId'];

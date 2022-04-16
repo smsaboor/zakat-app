@@ -69,21 +69,23 @@ class HomePageState extends State<HomePage> {
 
   String? currencyCode='IN';
   String? finalPhotoURL='https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg';
+  CollectionReference users = FirebaseFirestore.instance.collection('user');
 
-
-  String? startDate = DateTime.now().toString();
-  String? endDate = DateTime.now().toString();
+  String? startDate ;
+  String? endDate;
   double? nisab = 50000.0;
-
+  String?  country;
+  String? currency;
+  String? phoneNumber;
+  String? newUserId;
 
 
   Country _selectedDialogCountry = CountryPickerUtils.getCountryByIsoCode('IN');
   FirebaseHelper firebaseHelper = FirebaseHelper();
+
+  Future<ModelSetting?>? settingFuture;
+  ModelSetting? settings;
   var id = Uuid();
-
-  var settingListFuture ;
-
-  ModelSetting settings=ModelSetting('', '', '', 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0, '');
 
   List<ModelCash> cashList= <ModelCash>[];
   List<ModelMetal> goldList= <ModelMetal>[];
@@ -120,35 +122,44 @@ class HomePageState extends State<HomePage> {
   Position? _currentPosition;
   String _currentAddress=' ';
 
+  getInitialSetting(){
+    phoneNumber=_auth.currentUser?.phoneNumber.toString() ?? '';
+    startDate = DateFormat("yyyy-MM-dd").format(DateTime.now().subtract(new Duration(days: 354)));
+    endDate = DateFormat("yyyy-MM-dd").format(DateTime.now());
+    country = _selectedDialogCountry.isoCode!;
+    currency = _selectedDialogCountry.currencyCode!;
+    settings=ModelSetting('', country, currency, 0, startDate, endDate, 0, 0, 0, 0, 0, 0, 0, 0, finalUserID);
+  }
+
+  getFirebaseDataUserAndSetting() async{
+    Future<ModelUser?> userListFuture = firebaseHelper.getUser(finalUserID ?? '');
+    debugPrint(" 33------------${userListFuture.then((value) => print(value))}");
+    userListFuture.then((user) {
+      setState(() {
+        this.finalUserID = user?.userId;
+        this.email=user?.email;
+        this.finalPhotoURL=user?.photoUrl;
+        this.finalUserName=user?.name;
+        debugPrint(" 33333333333333333333333------------${user?.userId}");
+      });
+    });
+    Future<ModelSetting?> settingListFuture = firebaseHelper.getSettingList(finalUserID ?? '');
+    settingListFuture.then((setting){
+      this.settings=setting;
+    } );
+  }
+  addFirebaseDataUserAndSetting() async{
+    firebaseHelper.insertUser(ModelUser(finalUserID, '', '', phoneNumber, '', endDate, 'false', 0, '', '', 0, finalUserID, finalPhotoURL));
+    firebaseHelper.insertSetting(settings!);
+  }
 
   void getFirebaseCredential() async{
-    debugPrint(" getFirebaseCredential1 ------------}");
-    int result = await firebaseHelper.checkUserExist(_auth.currentUser?.uid.toString() ?? '');
-    debugPrint(" 1111111111111111111111111 ------------${result}");
+    int result = await firebaseHelper.checkUserExist(finalUserID ?? '');
     if(result==0){
-      debugPrint("222222222222222222222222222222 ------------${result}");
-      // firebaseHelper.insertUser(_auth.currentUser?.uid.toString(),_auth.currentUser?.phoneNumber.toString(),finalPhotoURL,settings);
-      firebaseHelper.insertUser(ModelUser(_auth.currentUser?.uid.toString(), '', '', _auth.currentUser?.phoneNumber.toString(), '', DateTime.now().toString(), 'false', 0, '', '', 0, '', finalPhotoURL));
-      // firebaseHelper.insertSetting(_auth.currentUser?.uid.toString(),settingDefault);
-      firebaseHelper.insertSetting(ModelSetting('', 'IN', 'Indian Rupee', 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0, _auth.currentUser?.uid.toString()));
-    }
-    else{
-      Future<ModelUser?> userListFuture = firebaseHelper.getUser(_auth.currentUser?.uid.toString() ?? '');
-      debugPrint(" 33------------${userListFuture.then((value) => print(value))}");
-      userListFuture.then((user) {
-        setState(() {
-          this.finalUserID = user?.userId;
-          this.email=user?.email;
-          this.finalPhotoURL=user?.photoUrl;
-          this.finalUserName=user?.name;
-          debugPrint(" 33333333333333333333333------------${user?.userId}");
-          debugPrint(" 33333333333333333333333------------${user?.userId}");
-        });
-      });
-      Future<ModelSetting?> settingListFuture = firebaseHelper.getSettingList(_auth.currentUser?.uid.toString() ?? '');
-      settingListFuture.then((setting){
-        this.settings=setting!;
-      } );
+      addFirebaseDataUserAndSetting();
+      getFirebaseDataUserAndSetting();
+    } else{
+      getFirebaseDataUserAndSetting();
     }
   }
 
@@ -157,6 +168,7 @@ class HomePageState extends State<HomePage> {
     super.initState();
     finalUserID= _auth.currentUser?.uid.toString() ?? '';
     _getCurrentLocation();
+    getInitialSetting();
     getFirebaseCredential();
     try {
       versionCheck(context);
@@ -180,7 +192,7 @@ class HomePageState extends State<HomePage> {
     }
 
     if (finalUserName == null) {
-      finalUserName = email;
+      finalUserName = phoneNumber;
     }
 
     return new Scaffold(
@@ -208,7 +220,7 @@ class HomePageState extends State<HomePage> {
             onPressed: () {
               //updateListViewSetting(userId);
               navigateToSettings(
-                  ModelSetting('','','',0,'','',0,0,0,0,0,0,0,0,this.finalUserID), 'settings'.tr(), finalUserID);
+                  settings ?? ModelSetting('','','',0,'','',0,0,0,0,0,0,0,0,this.finalUserID), 'settings'.tr(), finalUserID);
             },
           ),
         ],
@@ -291,7 +303,7 @@ class HomePageState extends State<HomePage> {
                           'assets'.tr(),
                           'assets'.tr(),
                           finalUserID,
-                          settings,
+                          settings!,
                         )),
                   )
                       .then((val) => {_getRequests()});
@@ -360,7 +372,7 @@ class HomePageState extends State<HomePage> {
                             'zakat'.tr(),
                             'Zakat',
                             this.finalUserID ?? '',
-                            this.settings)),
+                            this.settings!)),
                   )
                       .then((val) => {_getRequests()});
                 }),
@@ -381,7 +393,7 @@ class HomePageState extends State<HomePage> {
                     context,
                     new MaterialPageRoute(
                         builder: (_) => new AddSetting(
-                            ModelSetting('','','',0,'','',0,0,0,0,0,0,0,0,this.finalUserID),
+                            settings!,
                             'settings'.tr(),
                             finalUserID)),
                   ).then((val) {
@@ -636,11 +648,10 @@ class HomePageState extends State<HomePage> {
           '${data.amount.toString()} %')
     ];
 
-    return FutureBuilder<ModelSetting>(
-      future: settingListFuture, // a previously-obtained Future<String> or null
-      builder: (BuildContext context, AsyncSnapshot<ModelSetting> snapshot) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: users.doc(finalUserID).get(),// a previously-obtained Future<String> or null
+      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         List<Widget> children;
-
         if (snapshot.hasData) {
           return mainScreen(
               assetSeriesList, loanSeriesList, ribaSeriesList, zakatSeriesList);
@@ -696,7 +707,7 @@ class HomePageState extends State<HomePage> {
                     'assets'.tr(),
                     'assets',
                     finalUserID,
-                    settings,
+                    settings!,
                   )),
             )
                 .then((val) => {_getRequests()});
@@ -722,7 +733,7 @@ class HomePageState extends State<HomePage> {
                               'assets'.tr(),
                               'assets',
                               finalUserID,
-                              settings,
+                              settings!,
                             )),
                       )
                           .then((val) => {_getRequests()});
@@ -744,17 +755,18 @@ class HomePageState extends State<HomePage> {
                   SizedBox(
                     height: 150.0,
                     width: 310.0,
-                    child: charts.PieChart(
+                    child: charts.BarChart(
                       assetSeriesList,
-                      animate: true,
-                      defaultRenderer: new charts.ArcRendererConfig(
-                          arcRendererDecorators: [
-                            new charts.ArcLabelDecorator()
-                          ]),
+                      vertical: true,
+                      barRendererDecorator:
+                      new charts.BarLabelDecorator<String>(),
+                      // Hide domain axis.
+                      domainAxis: new charts.OrdinalAxisSpec(
+                          renderSpec: new charts.NoneRenderSpec()),
                       behaviors: [
                         new charts.DatumLegend(
                           position: charts.BehaviorPosition.end,
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -894,14 +906,14 @@ class HomePageState extends State<HomePage> {
                   SizedBox(
                     height: 150.0,
                     width: 310.0,
-                    child: charts.PieChart(
+                    child: charts.BarChart(
                       ribaSeriesList,
-                      animate: true,
-                      defaultRenderer: new charts.ArcRendererConfig(
-                          arcWidth: 60,
-                          arcRendererDecorators: [
-                            new charts.ArcLabelDecorator()
-                          ]),
+                      vertical: false,
+                      barRendererDecorator:
+                      new charts.BarLabelDecorator<String>(),
+                      // Hide domain axis.
+                      domainAxis: new charts.OrdinalAxisSpec(
+                          renderSpec: new charts.NoneRenderSpec()),
                       behaviors: [
                         new charts.DatumLegend(
                           position: charts.BehaviorPosition.end,
@@ -923,7 +935,7 @@ class HomePageState extends State<HomePage> {
                       'Zakat',
                       'Zakat',
                       this.finalUserID ?? '',
-                      settings)),
+                      settings!)),
             )
                 .then((val) => {_getRequests()});
           },
@@ -981,8 +993,8 @@ class HomePageState extends State<HomePage> {
 
   void updateListViewSetting(String? userId) {
     debugPrint('5-------------------------------  ${userId}');
-    settingListFuture = firebaseHelper.getSettingList(userId ?? '');
-    settingListFuture?.then((settingList) {
+    settingFuture = firebaseHelper.getSettingList(userId ?? '');
+    settingFuture?.then((settingList) {
       setState(() {
         if (settingList != null) {
           this.settings = settingList;
@@ -1033,7 +1045,7 @@ class HomePageState extends State<HomePage> {
 
   void updateListViewCash(String table, String type, String userId) {
     Future<List<ModelCash>> cashListFuture = firebaseHelper.getCashList(
-        userId, table, type, settings.startDate, settings.endDate);
+        userId, table, type);
     cashListFuture.then((cashList) {
       setState(() {
         this.cashList = cashList;
@@ -1109,10 +1121,10 @@ class HomePageState extends State<HomePage> {
           totalWeight24CG = totalWeight24CG + this.goldList[i].weight;
         }
       }
-      totalAmount18CG = totalWeight18CG * this.settings.goldRate18C;
-      totalAmount20CG = totalWeight20CG * this.settings.goldRate20C;
-      totalAmount22CG = totalWeight22CG * this.settings.goldRate22C;
-      totalAmount24CG = totalWeight24CG * this.settings.goldRate24C;
+      totalAmount18CG = totalWeight18CG * this.settings!.goldRate18C;
+      totalAmount20CG = totalWeight20CG * this.settings!.goldRate20C;
+      totalAmount22CG = totalWeight22CG * this.settings!.goldRate22C;
+      totalAmount24CG = totalWeight24CG * this.settings!.goldRate24C;
       gTotalAmountGold =
           totalAmount18CG + totalAmount20CG + totalAmount22CG + totalAmount24CG;
       totalAmount = gTotalAmountGold;
@@ -1128,10 +1140,10 @@ class HomePageState extends State<HomePage> {
           totalWeight24CS = totalWeight24CS + this.silverList[i].weight;
         }
       }
-      totalAmount18CS = totalWeight18CS * this.settings.silverRate18C;
-      totalAmount20CS = totalWeight20CS * this.settings.silverRate20C;
-      totalAmount22CS = totalWeight22CS * this.settings.silverRate22C;
-      totalAmount24CS = totalWeight24CS * this.settings.silverRate24C;
+      totalAmount18CS = totalWeight18CS * this.settings!.silverRate18C;
+      totalAmount20CS = totalWeight20CS * this.settings!.silverRate20C;
+      totalAmount22CS = totalWeight22CS * this.settings!.silverRate22C;
+      totalAmount24CS = totalWeight24CS * this.settings!.silverRate24C;
       gTotalAmountSilver =
           totalAmount18CS + totalAmount20CS + totalAmount22CS + totalAmount24CS;
       totalAmount = gTotalAmountSilver;
@@ -1313,7 +1325,7 @@ class HomePageState extends State<HomePage> {
     double totalAmount24CS = 0.0;
     double gTotalAmountSilver = 0.0;
     double totalAmount = 0.0;
-    DateTime zakatStartDate = DateTime.parse(settings.startDate);
+    DateTime zakatStartDate = DateTime.parse(settings!.startDate);
 
     //gold
     for (int i = 0; i <= goldList.length - 1; i++) {
@@ -1331,10 +1343,10 @@ class HomePageState extends State<HomePage> {
         }
       }
     }
-    totalAmount18CG = totalWeight18CG * this.settings.goldRate18C;
-    totalAmount20CG = totalWeight20CG * this.settings.goldRate20C;
-    totalAmount22CG = totalWeight22CG * this.settings.goldRate22C;
-    totalAmount24CG = totalWeight24CG * this.settings.goldRate24C;
+    totalAmount18CG = totalWeight18CG * this.settings!.goldRate18C;
+    totalAmount20CG = totalWeight20CG * this.settings!.goldRate20C;
+    totalAmount22CG = totalWeight22CG * this.settings!.goldRate22C;
+    totalAmount24CG = totalWeight24CG * this.settings!.goldRate24C;
     gTotalAmountGold =
         totalAmount18CG + totalAmount20CG + totalAmount22CG + totalAmount24CG;
     totalAmount = gTotalAmountGold;
@@ -1355,10 +1367,10 @@ class HomePageState extends State<HomePage> {
         }
       }
     }
-    totalAmount18CS = totalWeight18CS * this.settings.silverRate18C;
-    totalAmount20CS = totalWeight20CS * this.settings.silverRate20C;
-    totalAmount22CS = totalWeight22CS * this.settings.silverRate22C;
-    totalAmount24CS = totalWeight24CS * this.settings.silverRate24C;
+    totalAmount18CS = totalWeight18CS * this.settings!.silverRate18C;
+    totalAmount20CS = totalWeight20CS * this.settings!.silverRate20C;
+    totalAmount22CS = totalWeight22CS * this.settings!.silverRate22C;
+    totalAmount24CS = totalWeight24CS * this.settings!.silverRate24C;
     gTotalAmountSilver =
         totalAmount18CS + totalAmount20CS + totalAmount22CS + totalAmount24CS;
     totalAmount = totalAmount + gTotalAmountSilver;
@@ -1375,7 +1387,7 @@ class HomePageState extends State<HomePage> {
         totalLendSecure -
         totalBorrow -
         totalRibaBalance;
-    if (assets >= settings.nisab) {
+    if (assets >= settings!.nisab) {
       totalZakatPayable = assets / 40;
     } else {
       totalZakatPayable = 0;
@@ -1611,27 +1623,27 @@ class HomePageState extends State<HomePage> {
       setState(() {
         if (settings == null) {
           settings = new  ModelSetting('','','',0,'','',0,0,0,0,0,0,0,0,'');
-          settings.userId = this.finalUserID ?? '';
+          settings!.userId = this.finalUserID ?? '';
         }
-        settings.country = _selectedDialogCountry.isoCode ?? 'IN';
-        settings.currency = _selectedDialogCountry.currencyCode ?? 'India Rupee';
-        settings.startDate =
+        settings!.country = _selectedDialogCountry.isoCode ?? 'IN';
+        settings!.currency = _selectedDialogCountry.currencyCode ?? 'India Rupee';
+        settings!.startDate =
         '${DateFormat("yyyy-MM-dd").format(DateTime.now().subtract(new Duration(days: 354)))}';
-        settings.endDate = '${DateFormat("yyyy-MM-dd").format(DateTime.now())}';
-        settings.goldRate24C = rate.goldRate;
-        settings.goldRate22C = rate.goldRate * 0.916;
-        settings.goldRate20C = rate.goldRate * 0.833;
-        settings.goldRate18C = rate.goldRate * 0.750;
+        settings!.endDate = '${DateFormat("yyyy-MM-dd").format(DateTime.now())}';
+        settings!.goldRate24C = rate.goldRate;
+        settings!.goldRate22C = rate.goldRate * 0.916;
+        settings!.goldRate20C = rate.goldRate * 0.833;
+        settings!.goldRate18C = rate.goldRate * 0.750;
 
-        settings.silverRate24C = rate.silverRate;
-        settings.silverRate22C = rate.silverRate * 0.916;
-        settings.silverRate20C = rate.silverRate * 0.833;
-        settings.silverRate18C = rate.silverRate * 0.750;
+        settings!.silverRate24C = rate.silverRate;
+        settings!.silverRate22C = rate.silverRate * 0.916;
+        settings!.silverRate20C = rate.silverRate * 0.833;
+        settings!.silverRate18C = rate.silverRate * 0.750;
 
-        settings.nisab = rate.goldRate * 85;
-        this.nisab = settings.nisab;
+        settings!.nisab = rate.goldRate * 85;
+        this.nisab = settings!.nisab;
 
-        saveSettings(settings);
+        saveSettings(settings!);
       });
     });
   }
@@ -1639,7 +1651,7 @@ class HomePageState extends State<HomePage> {
   void saveSettings(ModelSetting settings) async {
     int result = await firebaseHelper.updateSetting(settings);
     setState(() {
-      settingListFuture = firebaseHelper.getSettingList(finalUserID ?? '');
+      settingFuture = firebaseHelper.getSettingList(finalUserID ?? '');
     });
   }
 }

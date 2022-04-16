@@ -20,6 +20,13 @@ class DisplayAllAssets extends StatefulWidget {
       this.appBarTitle, this.page, this.finaluserid, this.settings);
   @override
   State<StatefulWidget> createState() {
+    debugPrint("--------------------------------${settings.goldRate18C}");
+    debugPrint("--------------------------------${settings.startDate}");
+    debugPrint("--------------------------------${settings.silverRate24C}");
+    debugPrint("--------------------------------${settings.nisab}");
+    debugPrint(";;-------------------------------------${finaluserid}");
+    debugPrint(";;-------------------------------------${page}");
+    debugPrint(";;-------------------------------------${appBarTitle}");
     return DisplayAllAssetsState(
         this.appBarTitle, this.page, this.finaluserid, this.settings);
   }
@@ -48,18 +55,20 @@ class DisplayAllAssetsState extends State<DisplayAllAssets> {
   void initState() {
     _selectedDialogCountry = CountryPickerUtils.getCountryByIsoCode(settings.country);
     super.initState();
+    debugPrint(";;-initState------------------------------------${appBarTitle}");
   }
 
   @override
   Widget build(BuildContext context) {
-    if (cashList == null) {
+    debugPrint(";;-build------------------------------------${appBarTitle}");
+    if (cashList.isEmpty) {
+      debugPrint(";;-if------------------------------------${appBarTitle}");
       cashList = <ModelCash>[];
       metalList = <ModelMetal>[];
       updateListViewCash('cash', 'cashinhand', this.finaluserid);
       updateListViewCash('cash', 'cashinbank', this.finaluserid);
       updateListViewMetal('metal', 'gold', this.finaluserid);
       updateListViewMetal('metal', 'silver', this.finaluserid);
-
       getAllTotal();
     }
 
@@ -227,7 +236,7 @@ class DisplayAllAssetsState extends State<DisplayAllAssets> {
   // functions for Cash.................................................
   void updateListViewCash(String table, String type, String finaluserid) {
       Future<List<ModelCash>> cashListFuture = firebaseHelper.getCashList(
-          finaluserid, table, type, settings.startDate, settings.endDate);
+          finaluserid, table, type);
       cashListFuture.then((cashList) {
         setState(() {
           this.cashList = cashList;
@@ -246,6 +255,8 @@ class DisplayAllAssetsState extends State<DisplayAllAssets> {
     double totalCash = 0.0;
     for (int i = 0; i <= cashList.length - 1; i++) {
       totalCash = totalCash + this.cashList[i].amount;
+      debugPrint("-totalCash-------------------------------${totalCash}");
+
     }
     return totalCash;
   }
@@ -333,6 +344,7 @@ class DisplayAllAssetsState extends State<DisplayAllAssets> {
   double getAllTotal() {
     double allTotal = 0;
     allTotal = totalCashInHand + totalCashInBank + totalGold + totalSilver;
+    debugPrint("-allTotal-------------------------------${allTotal}");
     return allTotal;
   }
 }

@@ -43,7 +43,8 @@ class AddRibaRecivedState extends State<AddRibaRecived> {
   AddRibaRecivedState(this.riba, this.appBarTitle, this.button,
       this.finaluserid, this.position, this.currencyCode, this.settings);
   ModelSetting settings;
-  DataHelper helper = DataHelper();
+
+
   bool _canShowButton = false;
 
   DateTime? date;
@@ -207,11 +208,11 @@ class AddRibaRecivedState extends State<AddRibaRecived> {
                         return showDatePicker(
                             context: context,
                             initialDate: currentValue ?? DateTime.now(),
-                            firstDate: DateTime.parse(settings.startDate),
+                            firstDate:  DateTime(2000),
                             lastDate: DateTime.now());
                       },
                       onChanged: (dt) {
-                        //_controller3.text = dt.toString();
+                        // _controller3.text = dt.toString();
                       },
                     ),
                   ),
@@ -277,7 +278,6 @@ class AddRibaRecivedState extends State<AddRibaRecived> {
   }
 
   void _save() async {
-    this.riba.ribaId=id.v1();
     if (formKey.currentState!.validate()) {
       this.riba.bankName = _controller1.text.toString();
       if (_controller2.text == null) {
@@ -290,12 +290,12 @@ class AddRibaRecivedState extends State<AddRibaRecived> {
       this.riba.note = _controller4.text.toString();
       this.riba.userId = this.finaluserid;
       int result;
-      if (riba.ribaId != null) {
+      if (riba.ribaId.isEmpty) {
         // Case 1: Update operation
-        result = await helper.updateRiba(riba);
+        result = await firebaseHelper.insertRiba(riba);
       } else {
         // Case 2: Insert Operation
-        result = await helper.insertRiba(riba);
+        result = await firebaseHelper.updateRiba(riba);
       }
       moveToLastScreen();
     }

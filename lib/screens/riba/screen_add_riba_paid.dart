@@ -52,7 +52,6 @@ class AddRibaPaidState extends State<AddRibaPaid> {
   DateTime? date;
   int flag = 0;
   List<ModelRiba> ribaList = <ModelRiba>[];
-  DataHelper databaseHelper = DataHelper();
   int count = 0;
 
   final TextEditingController _controller1 = new TextEditingController();
@@ -281,7 +280,6 @@ class AddRibaPaidState extends State<AddRibaPaid> {
   }
 
   void _save() async {
-    this.riba.ribaId=id.v1();
     if (formKey.currentState!.validate()) {
       this.riba.bankName = _controller1.text.toString();
       if (_controller2.text == null) {
@@ -302,12 +300,12 @@ class AddRibaPaidState extends State<AddRibaPaid> {
       this.riba.note = _controller4.text.toString();
       this.riba.userId = this.finaluserid;
       int result;
-      if (riba.ribaId != null) {
+      if (riba.ribaId.isEmpty) {
         // Case 1: Update operation
-        result = await firebaseHelper.updateRiba(riba);
+        result = await firebaseHelper.insertRiba(riba);
       } else {
         // Case 2: Insert Operation
-        result = await firebaseHelper.insertRiba(riba);
+        result = await firebaseHelper.updateRiba(riba);
       }
 
       moveToLastScreen();
@@ -323,17 +321,14 @@ class AddRibaPaidState extends State<AddRibaPaid> {
   }
 
   void updateListView() {
-    final Future<Database> dbFuture = databaseHelper.initializeDatabase();
-    dbFuture.then((database) {
       Future<List<ModelRiba>> cashListFuture =
-          databaseHelper.getRibaListPaid(finaluserid);
+          firebaseHelper.getRibaListPaid(finaluserid);
       cashListFuture.then((ribaList) {
         setState(() {
           this.ribaList = ribaList;
           this.count = ribaList.length;
         });
       });
-    });
   }
 
   void _delete(BuildContext context, ModelRiba riba) async {

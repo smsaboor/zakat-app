@@ -72,7 +72,7 @@ class AddZakatPaymentState extends State<AddZakatPayment> {
     this.currencySymbol =
         CountryPickerUtils.getCountryByIsoCode('${settings.country}')
             .currencySymbol;
-    if (zakatPayment.zakatPaymentId != null) {
+    if (zakatPayment.zakatPaymentId.isNotEmpty) {
       _controller1.text = zakatPayment.title.toString();
       _controller2.text = zakatPayment.amount.toString();
       _controller3.text = zakatPayment.paymentDate.toString();
@@ -293,7 +293,6 @@ class AddZakatPaymentState extends State<AddZakatPayment> {
   }
 
   void _save() async {
-    this.zakatPayment.zakatPaymentId=id.v1();
     if (formKey.currentState!.validate()) {
       this.zakatPayment.title = _controller1.text.toString();
       if (_controller2.text == null) {
@@ -310,11 +309,13 @@ class AddZakatPaymentState extends State<AddZakatPayment> {
       }
       this.zakatPayment.paymentDate = _controller3.text.toString();
       this.zakatPayment.note = _controller4.text.toString();
-      this.zakatPayment.userId = this.finaluserid;
-      if (zakatPayment.zakatPaymentId != null) {
-        await firebaseHelper.updateZakatPaid(zakatPayment);
+      int result;
+      if (zakatPayment.userId.isNotEmpty) {
+        // Case 1: Update operation
+        result = await firebaseHelper.updateZakatPaid(zakatPayment);
       } else {
-        await firebaseHelper.insertZakatPaid(zakatPayment);
+        // Case 2: Insert Operation
+        result = await firebaseHelper.insertZakatPaid(zakatPayment);
       }
       moveToLastScreen();
     }

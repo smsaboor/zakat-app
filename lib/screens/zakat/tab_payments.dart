@@ -65,7 +65,7 @@ class DisplayZakatPaidState extends State<DisplayZakatPaid> {
 
   @override
   Widget build(BuildContext context) {
-    if (zakatList == null) {
+    if (zakatList.isEmpty) {
       zakatList = <ModelZakatPaid>[];
       updateListView();
     }

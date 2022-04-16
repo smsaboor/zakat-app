@@ -56,9 +56,7 @@ class ZakatState extends State<Zakat> with SingleTickerProviderStateMixin {
   }
 
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: DefaultTabController(
+     return DefaultTabController(
         length: 2,
         child: Scaffold(
           appBar: AppBar(
@@ -144,7 +142,6 @@ class ZakatState extends State<Zakat> with SingleTickerProviderStateMixin {
 //          floatingActionButtonLocation:
 //              FloatingActionButtonLocation.centerFloat,
         ),
-      ),
     );
   }
 

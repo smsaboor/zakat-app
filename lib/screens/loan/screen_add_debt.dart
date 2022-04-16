@@ -1,3 +1,4 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,7 +43,6 @@ class AddBorrowState extends State<AddBorrow> {
   AddBorrowState(this.loan, this.appBarTitle, this.button, this.finaluserid,
       this.position, this.countryCode, this.settings);
   ModelSetting settings;
-  DataHelper helper = DataHelper();
   bool _canShowButton = false;
 
   DateTime? date;
@@ -282,7 +282,6 @@ class AddBorrowState extends State<AddBorrow> {
   void _save() async {
     if (formKey.currentState!.validate()) {
       this.loan.description = _controller1.text.toString();
-      this.loan.loanid=id.v1();
       if (_controller2.text == null) {
         this.loan.amount = 0.0;
       } else {
@@ -294,13 +293,15 @@ class AddBorrowState extends State<AddBorrow> {
       this.loan.type = 'borrow';
       this.loan.userId = this.finaluserid;
       int result;
-      if (loan.loanid != null) {
+      if (loan.loanid.isEmpty) {
         // Case 1: Update operation
-        result = await helper.updateLoan(loan);
+        result = await firebaseHelper.insertLoan(loan);
       } else {
         // Case 2: Insert Operation
-        result = await helper.insertLoan(loan);
+        result = await firebaseHelper.updateLoan(loan);
       }
+      // int result;
+      //   result = await firebaseHelper.insertLoan(loan);
       moveToLastScreen();
     }
   }

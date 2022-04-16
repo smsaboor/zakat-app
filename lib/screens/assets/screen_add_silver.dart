@@ -72,6 +72,8 @@ class AddSilverState extends State<AddSilver> {
         _currentSelectedValue = '24K';
       }
       _canShowButton = true;
+    }else{
+      _controller2.text = '';
     }
 
     // TODO: implement initState
@@ -166,7 +168,16 @@ class AddSilverState extends State<AddSilver> {
                               }
                               return null;
                             },
-                            keyboardType: TextInputType.number,
+                            keyboardType:
+                            TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: <TextInputFormatter>[
+                              FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                            ],
+                            onTap: (){
+                              if(metal.metalId.isNotEmpty)
+                                _controller2.text=metal.weight.toString();
+                              else  _controller2.text='';
+                            },
                             decoration: new InputDecoration(
                                 border: new OutlineInputBorder(
                                     borderSide:
@@ -338,7 +349,6 @@ class AddSilverState extends State<AddSilver> {
 
   void _save() async {
     if (formKey.currentState!.validate()) {
-      this.metal.metalId=id.v1();
       this.metal.item = _controller1.text.toString();
       if (_controller2.text == null) {
         this.metal.weight = 0;
@@ -356,12 +366,13 @@ class AddSilverState extends State<AddSilver> {
       this.metal.type = 'silver';
       this.metal.note = _controller4.text.toString();
       this.metal.userId = this.finaluserid;
-      if (metal.metalId != null) {
+      int result;
+      if (metal.metalId.isEmpty) {
         // Case 1: Update operation
-        await firebaseHelper.updateMetal(metal);
+        result = await firebaseHelper.insertMetal(metal);
       } else {
         // Case 2: Insert Operation
-        await firebaseHelper.insertMetal(metal);
+        result = await firebaseHelper.updateMetal(metal);
       }
       moveToLastScreen();
     }

@@ -51,7 +51,6 @@ class DisplayZakatSummaryState extends State<DisplayZakatSummary> {
   DisplayZakatSummaryState(this.zakatPaid, this.appBarTitle, this.page,
       this.userId, this.settings, this.setZakatBalance);
   FirebaseHelper firebaseHelper = FirebaseHelper();
-  var id = Uuid();
 
 
   List<ModelCash> cashList=[];
@@ -88,7 +87,7 @@ class DisplayZakatSummaryState extends State<DisplayZakatSummary> {
 
   @override
   Widget build(BuildContext context) {
-    if (zakatPaidList == null) {
+    if (zakatPaidList.isEmpty) {
       cashList = <ModelCash>[];
       metalList = <ModelMetal>[];
       loanList = <ModelLoan>[];

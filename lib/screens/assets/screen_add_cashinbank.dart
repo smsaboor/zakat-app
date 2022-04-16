@@ -48,7 +48,7 @@ class AddCashInBankState extends State<AddCashInBank> {
   int flag = 0;
   int count = 0;
   FirebaseHelper firebaseHelper = FirebaseHelper();
-  var id = Uuid();
+
   List<ModelCash> cashList = <ModelCash>[];
   final TextEditingController _controller1 = new TextEditingController();
   final TextEditingController _controller2 = new TextEditingController();
@@ -59,12 +59,15 @@ class AddCashInBankState extends State<AddCashInBank> {
   final scaffoldKey = new GlobalKey<ScaffoldState>();
   @override
   void initState() {
-    if (cash.cashId != null) {
+    if (cash.cashId.isNotEmpty) {
       _controller1.text = cash.title.toString();
       _controller2.text = cash.amount.toString();
       _controller3.text = cash.date.toString();
       _controller4.text = cash.note.toString();
       _canShowButton = true;
+    }
+    else{
+      _controller2.text = '';
     }
     // TODO: implement initState
     super.initState();
@@ -163,12 +166,16 @@ class AddCashInBankState extends State<AddCashInBank> {
                       },
                       textInputAction: TextInputAction.next,
                       keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                      ],
                       decoration: new InputDecoration(
                           border: new OutlineInputBorder(
                               borderSide: new BorderSide(color: Colors.teal)),
                           labelText: 'Amount',
                           prefixText: ' ',
                           suffixText: countryCode,
+                          // suffixIcon: Icon(IconData(countryCode.codeUnitAt(0))),
                           suffixStyle: const TextStyle(
                             color: Colors.red,
                             fontSize: 18.0,
@@ -279,7 +286,6 @@ class AddCashInBankState extends State<AddCashInBank> {
 
   void _save() async {
     if (formKey.currentState!.validate()) {
-      this.cash.cashId=id.v1();
       this.cash.title = _controller1.text.toString();
       if (_controller2.text == null) {
         this.cash.amount = 0.0;
@@ -291,12 +297,15 @@ class AddCashInBankState extends State<AddCashInBank> {
       this.cash.type = 'cashinbank';
       this.cash.note = _controller4.text.toString();
       this.cash.userId = this.finaluserid;
-      if (cash.cashId != null) {
+      int result;
+      if (cash.cashId.isEmpty) {
+        debugPrint(".....................insert");
+        result = await firebaseHelper.insertCash(cash);
         // Case 1: Update operation
-        await firebaseHelper.updateCash(cash);
       } else {
+        debugPrint(".....................updateCash");
         // Case 2: Insert Operation
-        await firebaseHelper.insertCash(cash);
+        result = await firebaseHelper.updateCash(cash);
       }
       moveToLastScreen();
     }
@@ -348,9 +357,7 @@ class AddCashInBankState extends State<AddCashInBank> {
       Future<List<ModelCash>> cashListFuture = firebaseHelper.getCashList(
           finaluserid,
           'cash',
-          'cashinbank',
-          settings.startDate,
-          settings.endDate);
+          'cashinbank');
       cashListFuture.then((cashList) {
         setState(() {
           this.cashList = cashList;
