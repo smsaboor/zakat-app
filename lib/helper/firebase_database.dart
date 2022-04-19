@@ -17,16 +17,18 @@ import 'package:zakat_app/model/model_loan.dart';
 class FirebaseHelper {
   //--------------------------- Common implementation for all Assets (Gold, Silver, Cash-in-hand, Cash-in-Bank)------------
   static int? firebaseUser;
-  static FirebaseHelper?
-      _firebaseHelper; // Define Singleton DatabaseHelper object
-  FirebaseHelper._createInstance();
+  static FirebaseHelper? _firebaseHelper; // Define Singleton DatabaseHelper object
+  FirebaseHelper._privateConstructor();
 
   factory FirebaseHelper() {
     if (_firebaseHelper == null) {
-      _firebaseHelper = FirebaseHelper._createInstance();
+      _firebaseHelper = FirebaseHelper._privateConstructor();
     }
     return _firebaseHelper!;
   }
+  // FirebaseHelper._privateConstructor();
+  // static final FirebaseHelper instance = FirebaseHelper._privateConstructor();
+  // FirebaseHelper fdb= FirebaseHelper.instance;
 
   CollectionReference userCollection =
       FirebaseFirestore.instance.collection("user");
