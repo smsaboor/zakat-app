@@ -14,8 +14,6 @@ class CountryPickerUtils {
   }
 
   static String getFlagImageAssetPath(String isoCode) {
-
-    debugPrint("Hellllllllllllllllllllllllllllllllllllllllllllllllllllll${"assets/${isoCode.toLowerCase()}.png"}");
     return "assets/${isoCode.toLowerCase()}.png";
   }
 
